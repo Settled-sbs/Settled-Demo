@@ -7,7 +7,7 @@ This document outlines the exact boundary of the execution environment submitted
 The audit scope is strictly isolated to the core invariant enforcement engine.
 
 ### In Scope
-* `contracts/HookGuard.vy`: The unified ERC-7579 compliance and guard logic contract.
+  * `contracts/HookGuard.vy` / `contracts/HookGuard.sol`: The unified ERC-7579 compliance and guard logic contract.
   * State management for per-account configurations (whitelists, balance snapshots, spend limits).
   * Invariant math integrity during `preCheck` and `postCheck` hooks.
   * Storage isolation boundaries preventing cross-account configuration corruption.

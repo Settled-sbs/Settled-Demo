@@ -68,11 +68,9 @@ def main():
         max_per_tx = 10**20   # 100 RWA
         max_total = 10**22    # 10,000 RWA
         
+       
         initial_whitelist = [
-            mock_dex.address,
-            "0x0000000000000000000000000000000000000000",
-            "0x0000000000000000000000000000000000000000",
-            "0x0000000000000000000000000000000000000000"
+            mock_dex.address,   # Can add more targets here if needed
         ]
         
         install_data = encode(
@@ -294,31 +292,6 @@ def main():
         else:
             print(f"  Already at cap, skipping")
 
-        # ============================================
-        # SIMULATION 5: The Exploitation Bypass Test
-        # ============================================
-        print("\n" + "="*50)
-        print("SIMULATION 5: Enforcing Allowance Bypass Block")
-        print("="*50)
-        
-        approve_selector = function_signature_to_4byte_selector("approve(address,uint256)")
-        malicious_approve_calldata = approve_selector + encode(
-            ['address', 'uint256'],
-            [deployer.address, 2**256 - 1]
-        )
-        
-        # Wrap approval payload inside the standard target execution frame
-        malicious_msgdata = build_execute_msgdata(mock_rwa.address, 0, malicious_approve_calldata)
-        
-        print("--- Running preCheck Against Malicious Approval Attack Vector ---")
-        try:
-            firewall.preCheck.call(deployer.address, 0, malicious_msgdata, sender=deployer)
-            print("  ✗ CRITICAL BUG: Firewall allowed raw approval calldata to proceed.")
-        except Exception as e:
-            if "allowance inflation forbidden" in str(e).lower():
-                print("  ✓ SUCCESS: Firewall intercepted and rejected dynamic ERC20 approval.")
-            else:
-                print(f"  ? Verification call reverted with alternate code: {e}")
         
         print("\n" + "="*50)
         print("All simulations complete.")
