@@ -40,7 +40,7 @@ ERC-7579 hook module. One contract, per-account config. Enforces whitelist + spe
 
 ```bash
 anvil
-ape run deploy_test --network ethereum:local
+uv run ape run scripts/simulations.py --network ethereum:local
 ```
 
 ### Architecture
