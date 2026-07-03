@@ -38,7 +38,7 @@ def build_execute_msgdata(
 
 
 def main():
-    with networks.parse_network_choice("ethereum:local") as provider:
+    with networks.parse_network_choice("avalanche:local") as provider:
         print(f"Connected to local Anvil at {provider.uri}")
         
         deployer = accounts.test_accounts[0]
@@ -46,15 +46,15 @@ def main():
         
         # Deploy contracts
         print("\n[1/4] Deploying MockTBill...")
-        mock_rwa = project.MockTBill.deploy(sender=deployer)
-        print(f"  MockTBill: {mock_rwa.address}")
+        mock_TBills = project.MockTBill.deploy(sender=deployer)
+        print(f"  MockTBill: {mock_TBills.address}")
         
         print("\n[2/4] Deploying MockUSDC...")
         mock_usdc = project.MockUSDC.deploy(sender=deployer)
         print(f"  MockUSDC: {mock_usdc.address}")
         
         print("\n[3/4] Deploying MockDEX...")
-        mock_dex = project.MockDEX.deploy(mock_rwa.address, mock_usdc.address, sender=deployer)
+        mock_dex = project.MockDEX.deploy(mock_TBills.address, mock_usdc.address, sender=deployer)
         print(f"  MockDEX: {mock_dex.address}")
         
         print("\n[4/4] Deploying FirewallHook...")
@@ -64,9 +64,9 @@ def main():
         # Configure firewall
         print("\n[5/6] Configuring firewall...")
         owner = deployer.address
-        tracked_token = mock_rwa.address
-        max_per_tx = 10**20   # 100 RWA
-        max_total = 10**22    # 10,000 RWA
+        tracked_token = mock_TBills.address
+        max_per_tx = 10**20   # 100 TBills
+        max_total = 10**22    # 10,000 TBills
         
        
         initial_whitelist = [
@@ -90,23 +90,23 @@ def main():
         print(f"  paused: {config.paused}")
         print(f"  owner: {config.owner}")
         print(f"  trackedToken: {config.trackedToken}")
-        print(f"  maxSpendPerTx: {config.maxSpendPerTx}")
-        print(f"  maxSpendTotal: {config.maxSpendTotal}")
+        print(f"  maxSpendPerTx: {config.maxSpendPerTx // 10**18} TBills")
+        print(f"  maxSpendTotal: {config.maxSpendTotal // 10**18} TBills")
         print(f"  spentTotal: {config.spentTotal}")
 
         
         # Fund accounts — give DEX enough USDC for ALL tests
         print("\n[6/6] Funding...")
-        mint_amount = 10**24  # 1M RWA (plenty for all tests)
-        mock_rwa.mint(deployer.address, mint_amount, sender=deployer)
-        mock_rwa.approve(mock_dex.address, mint_amount, sender=deployer)
+        mint_amount = 10**24  # 1M TBills (plenty for all tests)
+        mock_TBills.mint(deployer.address, mint_amount, sender=deployer)
+        mock_TBills.approve(mock_dex.address, mint_amount, sender=deployer)
         
         # DEX needs enough USDC to cover the excessive swap too
-        # If swap rate is 1 RWA = 10^-6 USDC (10**6 USDC per 10**18 RWA)
-        # Then 10^21 RWA = 10^9 USDC. Give DEX 10^15 to be safe.
+        # If swap rate is 1 TBills = 10^-6 USDC (10**6 USDC per 10**18 TBills)
+        # Then 10^21 TBills = 10^9 USDC. Give DEX 10^15 to be safe.
         usdc_mint = 10**15
         mock_usdc.mint(mock_dex.address, usdc_mint, sender=deployer)
-        print(f"  Minted {mint_amount} RWA to deployer")
+        print(f"  Minted {mint_amount} TBills to deployer")
         print(f"  Minted {usdc_mint} USDC to DEX")
         
         # ============================================
@@ -116,12 +116,12 @@ def main():
         print("SIMULATION 1: Agent swap within limits")
         print("="*50)
         
-        swap_amount = 10**18  # 1 RWA
+        swap_amount = 10**18  # 1 TBills
         
         swap_selector = function_signature_to_4byte_selector("swap(address,address,uint256)")
         inner_calldata = swap_selector + encode(
             ['address', 'address', 'uint256'],
-            [mock_rwa.address, mock_usdc.address, swap_amount]
+            [mock_TBills.address, mock_usdc.address, swap_amount]
         )
         
         execute_selector = b"\x00\x00\x00\x00"
@@ -132,12 +132,12 @@ def main():
             inner_calldata
         )
         
-        print(f"\nSwap amount: {swap_amount} RWA (limit: {max_per_tx})")
+        print(f"\nSwap amount: {swap_amount} TBills (limit: {max_per_tx})")
         print(f"Target: {mock_dex.address}")
         
-        rwa_before = mock_rwa.balanceOf(deployer.address)
+        TBills_before = mock_TBills.balanceOf(deployer.address)
         usdc_before = mock_usdc.balanceOf(deployer.address)
-        print(f"\nBalances before: RWA={rwa_before}, USDC={usdc_before}")
+        print(f"\nBalances before: TBills={TBills_before}, USDC={usdc_before}")
         
         print(f"\n--- preCheck ---")
         try:
@@ -149,7 +149,7 @@ def main():
             return
         
         print(f"\n--- Execute swap ---")
-        tx = mock_dex.swap(mock_rwa.address, mock_usdc.address, swap_amount, sender=deployer)
+        tx = mock_dex.swap(mock_TBills.address, mock_usdc.address, swap_amount, sender=deployer)
         print(f"  ✓ Swap executed (gas: {tx.gas_used})")
         
         print(f"\n--- postCheck ---")
@@ -160,9 +160,9 @@ def main():
             print(f"  ✗ postCheck FAILED: {e}")
             return
         
-        rwa_after = mock_rwa.balanceOf(deployer.address)
+        TBills_after = mock_TBills.balanceOf(deployer.address)
         usdc_after = mock_usdc.balanceOf(deployer.address)
-        print(f"\nBalances after: RWA={rwa_after} (Δ: {rwa_before - rwa_after}), USDC={usdc_after} (Δ: {usdc_after - usdc_before})")
+        print(f"\nBalances after: TBills={TBills_after} (Δ: {TBills_before - TBills_after}), USDC={usdc_after} (Δ: {usdc_after - usdc_before})")
         
         # ============================================
         # SIMULATION 2: Exceed per-tx limit (should REVERT at postCheck)
@@ -172,11 +172,11 @@ def main():
         print("="*50)
         
         # Amount above max_per_tx (10^20)
-        excessive_amount = 10**21  # 1,000 RWA > 100 RWA limit
+        excessive_amount = 10**21  # 1,000 TBills > 100 TBills limit
         
         inner_calldata_excess = swap_selector + encode(
             ['address', 'address', 'uint256'],
-            [mock_rwa.address, mock_usdc.address, excessive_amount]
+            [mock_TBills.address, mock_usdc.address, excessive_amount]
         )
         msgdata_excess = build_execute_msgdata(
             execute_selector,
@@ -185,7 +185,7 @@ def main():
             inner_calldata_excess
         )
         
-        print(f"\nSwap amount: {excessive_amount} RWA (limit: {max_per_tx})")
+        print(f"\nSwap amount: {excessive_amount} TBills (limit: {max_per_tx})")
         
         print(f"\n--- preCheck ---")
         try:
@@ -197,7 +197,7 @@ def main():
         
         print(f"\n--- Execute swap ---")
         # This should succeed on DEX (funded enough now)
-        tx = mock_dex.swap(mock_rwa.address, mock_usdc.address, excessive_amount, sender=deployer)
+        tx = mock_dex.swap(mock_TBills.address, mock_usdc.address, excessive_amount, sender=deployer)
         print(f"  ✓ DEX swap executed (gas: {tx.gas_used})")
         
         print(f"\n--- postCheck ---")
@@ -251,24 +251,24 @@ def main():
         config = firewall.getConfig(deployer.address)
         print(f"\nCurrent spent: {config.spentTotal} / {config.maxSpendTotal}")
 
-        # We've spent 1 RWA so far. Do 99 more swaps of 100 RWA each to reach 9,999.
-        # Then one more swap of 2 RWA should exceed the 10,000 cap.
+        # We've spent 1 TBills so far. Do 99 more swaps of 100 TBills each to reach 9,999.
+        # Then one more swap of 2 TBills should exceed the 10,000 cap.
 
         # For demo speed, just do 2 more swaps to show the pattern, then update cap
         swaps_to_do = 2
-        swap_size = 10**20  # 100 RWA (at per-tx limit)
+        swap_size = 10**20  # 100 TBills (at per-tx limit)
 
-        print(f"\nDoing {swaps_to_do} swaps of {swap_size} RWA to accumulate spend...")
+        print(f"\nDoing {swaps_to_do} swaps of {swap_size} TBills to accumulate spend...")
 
         for i in range(swaps_to_do):
             inner = swap_selector + encode(
                 ['address', 'address', 'uint256'],
-                [mock_rwa.address, mock_usdc.address, swap_size]
+                [mock_TBills.address, mock_usdc.address, swap_size]
             )
             msg = build_execute_msgdata(execute_selector, mock_dex.address, 0, inner)
             
             hook = firewall.preCheck.call(deployer.address, 0, msg, sender=deployer)
-            tx = mock_dex.swap(mock_rwa.address, mock_usdc.address, swap_size, sender=deployer)
+            tx = mock_dex.swap(mock_TBills.address, mock_usdc.address, swap_size, sender=deployer)
             firewall.postCheck(hook, sender=deployer)
             print(f"  Swap {i+1}: OK")
 
@@ -276,20 +276,20 @@ def main():
         print(f"\nSpent after {swaps_to_do} swaps: {config_after.spentTotal} / {config_after.maxSpendTotal}")
 
         # Now update total cap to something just above current spent for quick test
-        new_total = config_after.spentTotal + 10**18  # current + 1 RWA
-        print(f"\nUpdating total cap to {new_total} (current + 1 RWA)...")
+        new_total = config_after.spentTotal + 10**18  # current + 1 TBills
+        print(f"\nUpdating total cap to {new_total} (current + 1 TBills)...")
         firewall.updateLimits(10**20, new_total, sender=deployer)
 
-        # Try one more 100 RWA swap — should exceed new total cap
-        print(f"\nTrying one more 100 RWA swap (should exceed new total cap)...")
+        # Try one more 100 TBills swap — should exceed new total cap
+        print(f"\nTrying one more 100 TBills swap (should exceed new total cap)...")
         inner_over = swap_selector + encode(
             ['address', 'address', 'uint256'],
-            [mock_rwa.address, mock_usdc.address, swap_size]
+            [mock_TBills.address, mock_usdc.address, swap_size]
         )
         msg_over = build_execute_msgdata(execute_selector, mock_dex.address, 0, inner_over)
 
         hook_over = firewall.preCheck.call(deployer.address, 0, msg_over, sender=deployer)
-        tx = mock_dex.swap(mock_rwa.address, mock_usdc.address, swap_size, sender=deployer)
+        tx = mock_dex.swap(mock_TBills.address, mock_usdc.address, swap_size, sender=deployer)
 
         try:
             firewall.postCheck(hook_over, sender=deployer)
