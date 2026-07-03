@@ -70,7 +70,10 @@ def main():
         
        
         initial_whitelist = [
-            mock_dex.address,   # Can add more targets here if needed
+            mock_dex.address,
+               "0x0000000000000000000000000000000000000000",
+                "0x0000000000000000000000000000000000000000",
+                   "0x0000000000000000000000000000000000000000"   # Can add more targets here if needed
         ]
         
         install_data = encode(
@@ -81,7 +84,15 @@ def main():
         firewall.onInstall(install_data, sender=deployer)
         print(f"  Firewall installed")
         
-        print(firewall.getConfig(deployer.address))
+        print("\nCurrent firewall config:")
+        config = firewall.getConfig(deployer.address)
+        print(f"  initialized: {config.initialized}")
+        print(f"  paused: {config.paused}")
+        print(f"  owner: {config.owner}")
+        print(f"  trackedToken: {config.trackedToken}")
+        print(f"  maxSpendPerTx: {config.maxSpendPerTx}")
+        print(f"  maxSpendTotal: {config.maxSpendTotal}")
+        print(f"  spentTotal: {config.spentTotal}")
 
         
         # Fund accounts — give DEX enough USDC for ALL tests

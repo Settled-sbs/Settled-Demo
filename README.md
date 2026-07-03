@@ -24,7 +24,7 @@ ERC-7579 hook module. One contract, per-account config. Enforces whitelist + spe
 | File | Purpose |
 |---|---|
 | `HookGuard.vy` | Core hook — whitelist, spend caps, cumulative limits |
-| `HookGuard.sol` | Solidity version, if you can't read vyper |
+| `HookGuard.sol` | Solidity version, for brevity |
 | `MockTBill.vy` | Test token (18 decimals) |
 | `MockUSDC.vy` | Test stablecoin (6 decimals) |
 | `MockDEX.vy` | 1:1 fixed-rate swap for testing |
@@ -39,7 +39,9 @@ ERC-7579 hook module. One contract, per-account config. Enforces whitelist + spe
 ### Run Simulation
 
 ```bash
-anvil
+
+uv sync 
+
 uv run ape run scripts/simulations.py --network ethereum:local
 ```
 
