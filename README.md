@@ -101,7 +101,7 @@ Testing on Avalanche Fuji with Biconomy Nexus 1.2.0.
 
 | Contract | Address | Network |
 |----------|---------|---------|
-| `AgentFirewall.vy` | `0xb1143e214d7667C68b0236980579cfa3Dde485E6` | Avalanche Fuji |
+| `HookGuard.vy` | `0xb1143e214d7667C68b0236980579cfa3Dde485E6` | Avalanche Fuji |
 | `MockDEX.vy` | `0x18556DA13313f3532c54711497A8FedAC273220E` | Avalanche Fuji |
 | USDC (Circle Testnet) | `0x5425890298aed601595a70AB815c96711a31Bc65` | Avalanche Fuji |
 
