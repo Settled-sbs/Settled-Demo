@@ -2,7 +2,7 @@
 
 **EVM Spend Enforcement for ERC-7579 Smart Accounts**
 
-Deterministic on-chain guardrails that prevent treasury drainage, even with full key compromise.
+Deterministic on-chain guardrails that prevent treasury drainage, even with full session key compromise.
 
 --- 
 
