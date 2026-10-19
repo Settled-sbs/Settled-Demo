@@ -265,10 +265,15 @@ Everything else is your responsibility.
 ---
 ## Contact
 
-- **Founder:** Benjamin Mgbeoji
+- **Authour:** Benjamin Mgbeoji
 - **Twitter:** [@secondfrontman](https://x.com/secondfrontman)
 - **Email:** xphinix1@gmail.com
-- **Demo:** [Video link coming]
+
+---
+### DISCLAIMER
+
+All contracts in this repository are unaudited and may contain vulnerabilities, using may result in loss of real money. 
+DO NOT use in any protocol handling real capital, this is a testnet guardrail implementation.
 
 ---
 ### License
